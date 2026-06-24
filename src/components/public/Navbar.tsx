@@ -51,7 +51,6 @@ export function Navbar({ site }: { site: SiteProfile }) {
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent/15 text-accent text-sm">
             {getInitials(site.fullName)}
           </span>
-          <span className="hidden sm:inline">{site.fullName}</span>
         </Link>
 
         {/* Desktop nav */}

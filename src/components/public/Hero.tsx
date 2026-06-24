@@ -49,12 +49,6 @@ export function Hero({ site }: { site: SiteProfile }) {
             variants={fadeUp}
             className="mt-3 text-2xl font-semibold text-gradient sm:text-3xl"
           >
-            {t.hero.headline}
-          </motion.p>
-          <motion.p
-            variants={fadeUp}
-            className="mx-auto mt-6 max-w-2xl text-base text-muted sm:text-lg"
-          >
             {site.tagline}
           </motion.p>
 
