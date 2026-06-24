@@ -1,4 +1,6 @@
 # dependencies
+/.agents
+/.vscode
 /node_modules
 /.pnp
 .pnp.js
@@ -27,4 +29,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/.md
+# md
+DEPLOY.md
+PRD(2).md
+
+# Markdown docs (tidak ikut di-push)
+*.md
