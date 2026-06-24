@@ -51,6 +51,30 @@ export function SettingsForm({
         />
       </FormField>
 
+      <FormField label="Foto Profil">
+        {dv.profile_image_url && (
+          <div className="mb-2 flex items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={dv.profile_image_url}
+              alt="Foto profil saat ini"
+              className="h-16 w-16 rounded-full border border-border object-cover"
+            />
+            <span className="text-xs text-muted">Foto profil saat ini</span>
+          </div>
+        )}
+        <input
+          name="profile_image_file"
+          type="file"
+          accept="image/*"
+          className="w-full rounded-lg border border-border bg-bg-soft px-3 py-2 text-sm text-muted file:mr-3 file:rounded file:border-0 file:bg-accent/10 file:px-3 file:py-1 file:text-xs file:font-medium file:text-accent"
+        />
+        <input type="hidden" name="profile_image_url" value={dv.profile_image_url ?? ""} />
+        <p className="mt-1 text-xs text-muted">
+          Opsional. Format gambar (JPG/PNG). Disimpan di folder public.
+        </p>
+      </FormField>
+
       <div className="grid gap-5 sm:grid-cols-2">
         <FormField label="Email">
           <input

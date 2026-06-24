@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { certificateSchema } from "@/lib/validations";
-import { uploadToR2, generateKey } from "@/lib/r2";
+import { saveUploadedFile, deleteLocalFile } from "@/lib/storage";
 
 async function requireAdmin() {
   const session = await auth();
@@ -28,13 +28,7 @@ export async function createCertificate(_prev: unknown, formData: FormData) {
   if (!result.success)
     return { success: false, errors: result.error.flatten().fieldErrors };
 
-  let imageUrl: string | undefined;
-  const file = formData.get("image") as File | null;
-  if (file && file.size > 0) {
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const key = generateKey("certificates", file.name);
-    imageUrl = await uploadToR2(key, buffer, file.type);
-  }
+  const imageUrl = (await saveUploadedFile("certificates", formData.get("image") as File | null)) ?? undefined;
 
   await db.certificate.create({
     data: {
@@ -60,13 +54,7 @@ export async function updateCertificate(id: string, _prev: unknown, formData: Fo
   if (!result.success)
     return { success: false, errors: result.error.flatten().fieldErrors };
 
-  let imageUrl: string | undefined;
-  const file = formData.get("image") as File | null;
-  if (file && file.size > 0) {
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const key = generateKey("certificates", file.name);
-    imageUrl = await uploadToR2(key, buffer, file.type);
-  }
+  const imageUrl = (await saveUploadedFile("certificates", formData.get("image") as File | null)) ?? undefined;
 
   await db.certificate.update({
     where: { id },

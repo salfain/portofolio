@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { projectSchema } from "@/lib/validations";
-import { uploadToR2, deleteFromR2, generateKey } from "@/lib/r2";
+import { saveUploadedFile, saveLocalFile, deleteLocalFile } from "@/lib/storage";
 
 async function requireAdmin() {
   const session = await auth();
@@ -84,9 +84,11 @@ async function uploadProjectGallery(
 
   await Promise.all(
     files.map(async (file, index) => {
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const key = generateKey("projects/gallery", file.name);
-      const imageUrl = await uploadToR2(key, buffer, file.type);
+      const imageUrl = await saveLocalFile(
+        "projects/gallery",
+        file.name,
+        Buffer.from(await file.arrayBuffer())
+      );
 
       await db.projectImage.create({
         data: {
@@ -155,13 +157,9 @@ export async function createProject(
   );
 
   // Handle thumbnail upload
-  let thumbnailUrl: string | undefined;
-  const thumbnailFile = formData.get("thumbnail") as File | null;
-  if (thumbnailFile && thumbnailFile.size > 0) {
-    const buffer = Buffer.from(await thumbnailFile.arrayBuffer());
-    const key = generateKey("projects", thumbnailFile.name);
-    thumbnailUrl = await uploadToR2(key, buffer, thumbnailFile.type);
-  }
+  const thumbnailUrl =
+    (await saveUploadedFile("projects", formData.get("thumbnail") as File | null)) ??
+    undefined;
 
   const project = await db.project.create({
     data: {
@@ -231,13 +229,9 @@ export async function updateProject(id: string, _prev: unknown, formData: FormDa
   );
 
   // Handle thumbnail upload
-  let thumbnailUrl: string | undefined;
-  const thumbnailFile = formData.get("thumbnail") as File | null;
-  if (thumbnailFile && thumbnailFile.size > 0) {
-    const buffer = Buffer.from(await thumbnailFile.arrayBuffer());
-    const key = generateKey("projects", thumbnailFile.name);
-    thumbnailUrl = await uploadToR2(key, buffer, thumbnailFile.type);
-  }
+  const thumbnailUrl =
+    (await saveUploadedFile("projects", formData.get("thumbnail") as File | null)) ??
+    undefined;
 
   await db.project.update({
     where: { id },
@@ -269,15 +263,8 @@ export async function deleteProject(id: string) {
   const project = await db.project.findUnique({ where: { id } });
   if (!project) return { success: false };
 
-  // Delete thumbnail from R2 if stored there
-  if (project.thumbnailUrl?.includes("r2.cloudflarestorage.com")) {
-    try {
-      const key = project.thumbnailUrl.split("/uploads/")[1];
-      if (key) await deleteFromR2(`uploads/${key}`);
-    } catch {
-      // non-blocking
-    }
-  }
+  // Hapus thumbnail lokal jika ada
+  await deleteLocalFile(project.thumbnailUrl);
 
   await db.project.delete({ where: { id } });
   revalidatePath("/portfolio");

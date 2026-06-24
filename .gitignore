@@ -34,3 +34,7 @@ next-env.d.ts
 # Markdown docs (tidak ikut di-push)
 *.md
 !README.md
+
+# Uploaded files (disimpan lokal, tidak ikut di-push)
+/public/uploads/*
+!/public/uploads/.gitkeep

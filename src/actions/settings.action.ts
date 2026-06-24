@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
-import { generateKey, uploadToR2 } from "@/lib/r2";
+import { saveUploadedFile } from "@/lib/storage";
 
 async function requireAdmin() {
   const session = await auth();
@@ -26,17 +26,18 @@ export async function upsertSetting(key: string, value: string) {
 export async function saveSettings(_prev: unknown, formData: FormData) {
   await requireAdmin();
 
+  // CV: upload lokal jika ada file baru
   let cvUrl = (formData.get("cv_url") as string) ?? "";
-  const cvFile = formData.get("cv_file") as File | null;
-  if (cvFile && cvFile.size > 0) {
-    const buffer = Buffer.from(await cvFile.arrayBuffer());
-    const key = generateKey("cv", cvFile.name);
-    cvUrl = await uploadToR2(
-      key,
-      buffer,
-      cvFile.type || "application/pdf"
-    );
-  }
+  const savedCv = await saveUploadedFile("cv", formData.get("cv_file") as File | null);
+  if (savedCv) cvUrl = savedCv;
+
+  // Foto profil: upload lokal jika ada file baru
+  const savedImage = await saveUploadedFile(
+    "profile",
+    formData.get("profile_image_file") as File | null
+  );
+  const profileImageUrl =
+    savedImage ?? ((formData.get("profile_image_url") as string) || "");
 
   const keys = [
     "site_name",
@@ -47,15 +48,31 @@ export async function saveSettings(_prev: unknown, formData: FormData) {
     "github_url",
     "linkedin_url",
     "cv_url",
+    "profile_image_url",
     "is_available",
   ];
 
   await Promise.all(
     keys.map((key) => {
-      const value = key === "cv_url" ? cvUrl : (formData.get(key) as string) ?? "";
-      return upsertSetting(key, value);
+      if (key === "cv_url") return upsertSetting(key, cvUrl);
+      if (key === "profile_image_url")
+        return upsertSetting(key, profileImageUrl);
+      return upsertSetting(key, (formData.get(key) as string) ?? "");
     })
   );
+
+  // Sinkronkan ke tabel Profile (dipakai halaman About untuk foto)
+  try {
+    const existing = await db.profile.findFirst();
+    if (existing) {
+      await db.profile.update({
+        where: { id: existing.id },
+        data: { profileImageUrl: profileImageUrl || null },
+      });
+    }
+  } catch {
+    // tabel profile opsional — abaikan bila gagal
+  }
 
   revalidatePath("/");
   revalidatePath("/about");

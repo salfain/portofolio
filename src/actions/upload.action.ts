@@ -1,7 +1,7 @@
 "use server";
 
 import { auth } from "@/lib/auth";
-import { uploadToR2, generateKey } from "@/lib/r2";
+import { saveUploadedFile } from "@/lib/storage";
 
 export async function uploadFile(formData: FormData) {
   const session = await auth();
@@ -14,9 +14,6 @@ export async function uploadFile(formData: FormData) {
     return { success: false, url: null, error: "Tidak ada file" };
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const key = generateKey(folder, file.name);
-  const url = await uploadToR2(key, buffer, file.type);
-
+  const url = await saveUploadedFile(folder, file);
   return { success: true, url, error: null };
 }
