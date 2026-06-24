@@ -29,9 +29,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# md
-DEPLOY.md
-PRD(2).md
+
 
 # Markdown docs (tidak ikut di-push)
 *.md
+!README.md

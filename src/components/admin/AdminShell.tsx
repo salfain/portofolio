@@ -13,6 +13,7 @@ const navItems = [
   { label: "Kategori", href: "/admin/categories", icon: "globe" },
   { label: "Skills", href: "/admin/skills", icon: "support" },
   { label: "Pengalaman", href: "/admin/experiences", icon: "calendar" },
+  { label: "Pendidikan", href: "/admin/education", icon: "award" },
   { label: "Sertifikat", href: "/admin/certificates", icon: "award" },
   { label: "Pesan", href: "/admin/messages", icon: "mail" },
   { label: "Settings", href: "/admin/settings", icon: "network" },

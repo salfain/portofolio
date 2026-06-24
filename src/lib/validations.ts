@@ -57,6 +57,14 @@ export const certificateSchema = z.object({
   description: z.string().optional().default(""),
 });
 
+export const educationSchema = z.object({
+  schoolName: z.string().min(1, "Nama sekolah/kampus wajib diisi"),
+  major: z.string().min(1, "Jurusan wajib diisi"),
+  startYear: z.number().int().min(1950).max(2100),
+  endYear: z.number().int().min(1950).max(2100).optional().nullable(),
+  description: z.string().optional().default(""),
+});
+
 export const loginSchema = z.object({
   email: z.string().email("Format email tidak valid"),
   password: z.string().min(1, "Password wajib diisi"),
